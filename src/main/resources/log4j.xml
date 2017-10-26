@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE log4j:configuration PUBLIC
+  "-//APACHE//DTD LOG4J 1.2//EN" "http://logging.apache.org/log4j/1.2/apidocs/org/apache/log4j/xml/doc-files/log4j.dtd">
+<log4j:configuration>
+
+    <appender name="FILE" class="org.apache.log4j.RollingFileAppender">
+        <rollingPolicy class="org.apache.log4j.rolling.TimeBasedRollingPolicy">
+            <param name="FileNamePattern" value="flowagent.%d{yyyy-MM-dd}.log"/>
+        </rollingPolicy>
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="%-5level %date{yyyy-MM-dd HH:mm:ss} %logger{10}:%L - %m%n"/>
+        </layout>
+    </appender>
+    
+    <appender name="STDOUT" class="org.apache.log4j.ConsoleAppender">
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="%-5level %date{yyyy-MM-dd HH:mm:ss} %logger{10}:%L - %m%n"/>
+        </layout>
+    </appender>
+
+    <logger name="org.medal.clear.flow.agent">
+        <level value="DEBUG" />
+        <appender-ref ref="STDOUT"/>
+    </logger>
+    
+</log4j:configuration>
