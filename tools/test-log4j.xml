@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE log4j:configuration PUBLIC
+  "-//APACHE//DTD LOG4J 1.2//EN" "http://logging.apache.org/log4j/1.2/apidocs/org/apache/log4j/xml/doc-files/log4j.dtd">
+<log4j:configuration>
+
+    <appender name="FILE" class="org.apache.log4j.RollingFileAppender">
+    
+        <param name="file" value="flowagent.log"/>
+        <param name="append" value="true"/>
+        <param name="MaxBackupIndex" value="5"/>
+        <param name="MaxFileSize" value="5MB"/>
+        
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="conversionPattern" value="[%-5p] %d [%t] %c: %m%n"/>
+        </layout>
+    </appender>
+
+    <logger name="org.medal.clear.flow.agent">
+        <level value="DEBUG" />
+        <appender-ref ref="FILE"/>
+    </logger>
+    
+</log4j:configuration>
