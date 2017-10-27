@@ -11,12 +11,15 @@
         <param name="MaxFileSize" value="5MB"/>
         
         <layout class="org.apache.log4j.PatternLayout">
+            <param name="conversionPattern" value="[%-5p] %m%n"/>
+<!-- 
             <param name="conversionPattern" value="[%-5p] %d [%t] %c: %m%n"/>
+-->
         </layout>
     </appender>
 
-    <logger name="org.medal.clear.flow.agent">
-        <level value="DEBUG" />
+    <logger name="org.medal.clear.flow">
+        <level value="TRACE" />
         <appender-ref ref="FILE"/>
     </logger>
     
