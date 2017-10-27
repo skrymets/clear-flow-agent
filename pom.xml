@@ -1,117 +1,190 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-    
-    <groupId>org.medal</groupId>
-    <artifactId>clear-flow</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
-    
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
-        
-        <agent.class>org.medal.clear.flow.agent.Agent</agent.class>
-        <main.class></main.class>
-    </properties>
-    
-    <licenses>
-        <license>
-            <name>The Apache Software License, Version 2.0</name>
-            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-            <distribution>repo</distribution>
-        </license>
-    </licenses>
-    
-    <issueManagement>
-        <system>github</system>
-        <url>https://github.com/skrymets/clear-flow-agent/issues</url>
-    </issueManagement>
-    
-    <dependencies>
-           
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
-            <version>1.7.25</version>
-        </dependency>
-        
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>1.7.25</version>
-        </dependency>
-        
-        <dependency>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-            <version>1.2.17</version>
-        </dependency>
-       
-        <dependency>
-            <groupId>javassist</groupId>
-            <artifactId>javassist</artifactId>
-            <version>3.12.1.GA</version>
-        </dependency>
-        
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.12</version>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
-    
-    <build>
-        <finalName>flowagent</finalName>
-        
-        <plugins>
+<project xmlns="http://maven.apache.org/POM/4.0.0" 
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+>
 
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <version>3.1.0</version>
-                <configuration>
-                    <descriptors>
-                        <descriptor>${project.basedir}/src/assembly/self-contained-agent.xml</descriptor>
-                    </descriptors>
-                    <archive>
-                        <addMavenDescriptor>false</addMavenDescriptor>
-                        <manifest>
-                            <mainClass>${main.class}</mainClass>
-                            <addClasspath>true</addClasspath>
-                            <classpathPrefix>lib/</classpathPrefix>
-                        </manifest>
-                        <manifestEntries>
-                            <Premain-Class>${agent.class}</Premain-Class>
-                            <Agent-Class>${agent.class}</Agent-Class>
-                            <Can-Redefine-Classes>true</Can-Redefine-Classes>
-                            <Can-Retransform-Classes>true</Can-Retransform-Classes>
-                        </manifestEntries>
-                    </archive>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>make-assembly</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.20.1</version>
-                <configuration>
-                    <forkCount>1</forkCount>
-                    <argLine>-javaagent:${basedir}/${project.build.finalName}.${project.packaging} -Dfile.encoding=UTF-8</argLine>
-                    <workingDirectory>${basedir}</workingDirectory>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
-    
+<modelVersion>4.0.0</modelVersion>
+
+<groupId>org.medal</groupId>
+<artifactId>clear-flow</artifactId>
+<version>1.0.0-SNAPSHOT</version>
+
+<properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
+
+    <main.class>org.medal.clear.flow.Main</main.class>
+
+    <agent.class>org.medal.clear.flow.agent.Agent</agent.class>
+    <agent.test.wrapper>${basedir}/flowagent.jar</agent.test.wrapper>
+    <agent.test.ns>org.medal.test</agent.test.ns>
+
+</properties>
+
+<licenses>
+    <license>
+        <name>The Apache Software License, Version 2.0</name>
+        <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        <distribution>repo</distribution>
+    </license>
+</licenses>
+
+<issueManagement>
+    <system>github</system>
+    <url>https://github.com/skrymets/clear-flow-agent/issues</url>
+</issueManagement>
+
+<dependencies>
+
+    <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-lang3</artifactId>
+        <version>3.6</version>
+    </dependency>
+
+    <dependency>
+        <groupId>javassist</groupId>
+        <artifactId>javassist</artifactId>
+        <version>3.12.1.GA</version>
+    </dependency>
+
+    <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-log4j12</artifactId>
+        <version>1.7.25</version>
+    </dependency>
+
+    <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-api</artifactId>
+        <version>1.7.25</version>
+    </dependency>
+
+    <dependency>
+        <groupId>log4j</groupId>
+        <artifactId>log4j</artifactId>
+        <version>1.2.17</version>
+    </dependency>
+
+    <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>4.12</version>
+        <scope>test</scope>
+    </dependency>
+</dependencies>
+
+<build>
+    <finalName>flowagent</finalName>
+</build>
+
+<profiles>
+    <profile>
+        <id>dev</id>
+        <activation>
+            <activeByDefault>true</activeByDefault>
+        </activation>
+        <build>
+            <finalName>flowagent</finalName>
+
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>2.20.1</version>
+                    <configuration>
+                        <forkCount>1C</forkCount>
+                        <workingDirectory>${basedir}</workingDirectory>
+                        <!-- 
+                        <debugForkedProcess>false</debugForkedProcess>
+
+                        This will not work, because, for some reason it is being interpreted 
+                        as name of a main class "false".
+
+                        In order to be able to debug the code this line should be applied to 
+                        the argLine: 
+
+                            -Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005 
+                            -->
+                            <argLine>
+                                -classpath ${project.build.directory}/classes;${agent.dependencies.classpath}
+                                -Dfile.encoding=UTF-8 
+                                -Dlog4j.configuration=file:/${basedir}/tools/test-log4j.xml                         
+                                -javaagent:${agent.test.wrapper}=namespaces=${agent.test.ns} 
+                            </argLine>
+                            <disableXmlReport>true</disableXmlReport>
+                            <useFile>false</useFile>
+                        </configuration>
+                    </plugin>
+
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-dependency-plugin</artifactId>
+                        <version>3.0.2</version>
+                        <executions>
+                            <execution>
+                                <id>build-classpath</id>
+                                <phase>generate-resources</phase>
+                                <goals>
+                                    <goal>build-classpath</goal>
+                                </goals>
+                                <configuration>
+                                    <outputProperty>agent.dependencies.classpath</outputProperty>
+                                    <fileSeparator>/</fileSeparator>
+                                    <pathSeparator>;</pathSeparator>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                </plugins>
+            </build>
+
+        </profile>
+
+        <profile>
+            <id>release-artifact</id>
+            <build>        
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-assembly-plugin</artifactId>
+                        <version>3.1.0</version>
+                        <configuration>
+                            <descriptors>
+                                <!--<descriptor>${project.basedir}/src/assembly/self-contained-agent.xml</descriptor>-->
+                                <descriptor>${project.basedir}/src/assembly/static-deps.xml</descriptor>
+                            </descriptors>
+                            <archive>
+                                <addMavenDescriptor>false</addMavenDescriptor>
+                                <manifest>
+                                    <mainClass>${main.class}</mainClass>
+                                    <addClasspath>true</addClasspath>
+                                    <classpathPrefix>lib/</classpathPrefix>
+                                </manifest>
+                                <manifestEntries>
+                                    <Premain-Class>${agent.class}</Premain-Class>
+                                    <Agent-Class>${agent.class}</Agent-Class>
+                                    <Can-Redefine-Classes>true</Can-Redefine-Classes>
+                                    <Can-Retransform-Classes>true</Can-Retransform-Classes>
+                                </manifestEntries>
+                            </archive>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>make-assembly</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>single</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
 </project>
