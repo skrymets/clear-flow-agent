@@ -52,7 +52,7 @@ public class CallGraph extends AbstractGraph<String, ParticipantData, CallData, 
     
 
     @Override
-    protected NodeFactory<String, ParticipantData> getNodeFactory() {
+    protected NodeFactory<String, ParticipantData, CallData, ParticipantNode, CallEdge> getNodeFactory() {
         return () -> new ParticipantNode(CallGraph.this);
     }
 

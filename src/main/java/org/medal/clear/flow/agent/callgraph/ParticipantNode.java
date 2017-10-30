@@ -22,7 +22,7 @@ import org.medal.graph.impl.AbstractNode;
  *
  * @author skrymets
  */
-public class ParticipantNode extends AbstractNode<String, ParticipantData> {
+public class ParticipantNode extends AbstractNode<String, ParticipantData, CallData, ParticipantNode, CallEdge> {
 
     public ParticipantNode(Graph graph) {
         super(graph);

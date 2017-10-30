@@ -22,7 +22,7 @@ import org.medal.graph.impl.AbstractEdge;
  *
  * @author skrymets
  */
-public class CallEdge extends AbstractEdge<String, ParticipantNode, CallData> {
+public class CallEdge extends AbstractEdge<String, ParticipantData, CallData, ParticipantNode, CallEdge> {
 
     public CallEdge(Graph graph, ParticipantNode left, ParticipantNode right, Link link) {
         super(graph, left, right, link);

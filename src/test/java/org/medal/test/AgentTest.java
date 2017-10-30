@@ -1,4 +1,4 @@
-package org.medal.clear.flow.agent;
+package org.medal.test;
 
 import org.junit.Test;
 import static org.junit.Assert.*;
