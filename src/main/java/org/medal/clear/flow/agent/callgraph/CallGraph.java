@@ -15,6 +15,8 @@
  */
 package org.medal.clear.flow.agent.callgraph;
 
+import java.util.Set;
+import java.util.TreeSet;
 import org.medal.graph.Edge;
 import org.medal.graph.EdgeFactory;
 import org.medal.graph.IDProvider;
@@ -58,10 +60,12 @@ public class CallGraph extends AbstractGraph<String, ParticipantData, CallData, 
 
     @Override
     public String toString() {
-        StringBuilder edges = new StringBuilder();
-        for (CallEdge edge : getEdges()) {
-            edges.append(edge).append("\n");
+        StringBuilder edgesInfo = new StringBuilder();
+
+        Set<CallEdge> edges = new TreeSet<>(getEdges());
+        for (CallEdge edge : edges) {
+            edgesInfo.append(edge).append("\n");
         }
-        return edges.toString();
+        return edgesInfo.toString();
     }
 }

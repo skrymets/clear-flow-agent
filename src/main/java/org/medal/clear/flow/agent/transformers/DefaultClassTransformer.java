@@ -13,38 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.medal.clear.flow.agent.impl;
+package org.medal.clear.flow.agent.transformers;
 
-import javassist.CannotCompileException;
 import javassist.CtClass;
-import javassist.CtConstructor;
 import org.medal.clear.flow.agent.InstrumentationFailedException;
+import org.medal.clear.flow.agent.ClassTransformer;
 
-public class VisitClassTransformer extends DefaultClassTransformer {
+public class DefaultClassTransformer implements ClassTransformer {
 
     @Override
     public String getName() {
-        return "visit";
+        return "default";
+    }
+
+    @Override
+    public boolean accepts(CtClass clazz) {
+        return !shouldSkip(clazz);
     }
 
     @Override
     public boolean shouldSkip(CtClass clazz) {
-        return super.shouldSkip(clazz)
-                || clazz.isInterface()
-                || clazz.isFrozen();
+        return clazz == null 
+                || clazz.isPrimitive() 
+                || clazz.isAnnotation() 
+                || clazz.isInterface() 
+                || clazz.isEnum()
+                || clazz.isArray();
     }
 
     @Override
     public CtClass transform(final CtClass clazz) throws InstrumentationFailedException {
-
-        for (CtConstructor constructor : clazz.getConstructors()) {
-            try {
-                constructor.insertBefore("System.out.println($class.getName());");
-            } catch (CannotCompileException e) {
-                throw new InstrumentationFailedException(e);
-            }
-        }
-
         return clazz;
     }
 

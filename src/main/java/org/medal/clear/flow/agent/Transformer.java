@@ -29,18 +29,18 @@ import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.NotFoundException;
 import static org.apache.commons.lang3.ObjectUtils.firstNonNull;
-import org.medal.clear.flow.agent.impl.DefaultClassTransformer;
-import org.medal.clear.flow.agent.impl.VisitClassTransformer;
+import org.medal.clear.flow.agent.transformers.VisitClassTransformer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import static java.util.Objects.requireNonNull;
 
 /**
  *
  * @author skrymets
  */
-class ClassFileTransformerImpl implements ClassFileTransformer {
+class Transformer implements ClassFileTransformer {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ClassFileTransformerImpl.class);
+    private static final Logger LOG = LoggerFactory.getLogger(Transformer.class);
 
     private final Set<String> packagesToInstrument;
 
@@ -51,7 +51,7 @@ class ClassFileTransformerImpl implements ClassFileTransformer {
             )
     );
 
-    ClassFileTransformerImpl(Set<String> packagesToInstrument) {
+    Transformer(Set<String> packagesToInstrument) {
         this.packagesToInstrument = firstNonNull(
                 packagesToInstrument,
                 Collections.<String>emptySet()
@@ -68,14 +68,14 @@ class ClassFileTransformerImpl implements ClassFileTransformer {
 
         for (String instrumentablePackageName : packagesToInstrument) {
             if (className.startsWith(instrumentablePackageName)) {
-                return instrumentClass(loader, className, classBeingRedefined, protectionDomain, classfileBuffer);
+                return applyTransformations(loader, className, classBeingRedefined, protectionDomain, classfileBuffer);
             }
         }
 
         return classfileBuffer;
     }
 
-    private byte[] instrumentClass(
+    private byte[] applyTransformations(
             final ClassLoader loader,
             final String className,
             final Class<?> classBeingRedefined,
@@ -85,9 +85,9 @@ class ClassFileTransformerImpl implements ClassFileTransformer {
 
         requireNonNull(className, "Class name must not be null");
         
-        final String qualifiedClassName = className.replace('/', '.');
+        final String javaClassName = className.replace('/', '.');
         
-        LOG.trace("CFT0001247: Instrumenting class: {} ...", qualifiedClassName);
+        LOG.trace("CFT0001247: Instrumenting class: {} ...", javaClassName);
         
         byte[] result = classfileBuffer;
         
@@ -95,23 +95,23 @@ class ClassFileTransformerImpl implements ClassFileTransformer {
         
         CtClass clazz;
         try {
-            clazz = cp.get(qualifiedClassName);
+            clazz = cp.get(javaClassName);
         } catch (NotFoundException ex) {
-            LOG.error("CFT0064585 Can not find class {}", qualifiedClassName);
+            LOG.error("CFT0064585 Can not find class {}", javaClassName);
             return result;
         }
 
-        for (ClassTransformer bcm : transformers) {
-            if (bcm.shouldSkip(clazz)) {
-                LOG.trace("CFT0011556: {} is skipping class {}", bcm.getName(), className);
+        for (ClassTransformer classTransformer : transformers) {
+            if (classTransformer.shouldSkip(clazz)) {
+                LOG.trace("CFT0011556: {} is skipping class {}", classTransformer.getName(), className);
                 continue;
             }
 
             try {
-                clazz = bcm.transform(clazz);
+                clazz = classTransformer.transform(clazz);
             } catch (Exception e) {
                 LOG.error("CFT0013297 Failed to apply '{}' bytecode modifications to {} due to {}",
-                        bcm.getName(), qualifiedClassName, e.getMessage()
+                        classTransformer.getName(), javaClassName, e.getMessage()
                 );
             }
         }
@@ -122,7 +122,7 @@ class ClassFileTransformerImpl implements ClassFileTransformer {
                 result = clazz.toBytecode();
             } catch (IOException | CannotCompileException ex) {
                 LOG.error("CFT0014824 Failed get bytecode of {} due to {}. The class remains untouched.", 
-                        qualifiedClassName, ex.getMessage()
+                        javaClassName, ex.getMessage()
                 );
             }
         }

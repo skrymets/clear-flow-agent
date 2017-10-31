@@ -25,7 +25,7 @@ public class Agent {
         Set<String> packagesToInstrument = readNamespaces(properties.get(PARAM_NAMESPACES));
         LOG.trace("FA00006462 Packages to be instrumented {}", packagesToInstrument);
         
-        inst.addTransformer(new ClassFileTransformerImpl(packagesToInstrument));
+        inst.addTransformer(new Transformer(packagesToInstrument));
     }
 
     public static void agentmain(String args, Instrumentation inst) {

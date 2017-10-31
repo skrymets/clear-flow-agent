@@ -15,14 +15,50 @@
  */
 package org.medal.clear.flow.agent.callgraph;
 
-import java.io.Serializable;
-
 /**
  *
  * @author skrymets
  */
-public class ParticipantData implements Serializable {
-    
-    private static final long serialVersionUID = 1376172859779380885L;
-    
+public class ParticipantData {
+
+    private final long instanceCode;
+
+    public ParticipantData(long instanceCode) {
+        this.instanceCode = instanceCode;
+    }
+
+    public long getInstanceCode() {
+        return instanceCode;
+    }
+
+    @Override
+    public String toString() {
+        return "" + instanceCode;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 3;
+        hash = 11 * hash + (int) (this.instanceCode ^ (this.instanceCode >>> 32));
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final ParticipantData other = (ParticipantData) obj;
+        if (this.instanceCode != other.instanceCode) {
+            return false;
+        }
+        return true;
+    }
+
 }

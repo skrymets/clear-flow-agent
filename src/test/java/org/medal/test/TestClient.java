@@ -13,23 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.medal.clear.flow.agent.callgraph;
-
-import org.medal.graph.impl.AbstractNode;
+package org.medal.test;
 
 /**
  *
  * @author skrymets
  */
-public class ParticipantNode extends AbstractNode<String, ParticipantData, CallData, ParticipantNode, CallEdge> {
+class TestClient {
 
-    public ParticipantNode(CallGraph graph) {
-        super(graph);
+    public int clientMethod(TestServer server) {
+        final int serverResponse = server.serverMethod();
+        server.serverMethod2();
+        return serverResponse;
     }
 
-    @Override
-    public String toString() {
-        return "N_" + getId() + ":" + getData();
-    }
-    
 }

@@ -113,16 +113,17 @@
                         the argLine: 
 
                             -Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005 
-                            -->
-                            <argLine>
-                                -classpath ${project.build.directory}/classes;${agent.dependencies.classpath}
-                                -Dfile.encoding=UTF-8 
-                                -Dlog4j.configuration=file:/${basedir}/tools/test-log4j.xml                         
-                                -javaagent:${agent.test.wrapper}=namespaces=${agent.test.ns} 
-                            </argLine>
-                            <disableXmlReport>true</disableXmlReport>
-                            <useFile>false</useFile>
-                        </configuration>
+                        -->
+                        <argLine>
+                            -Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005 
+                            -classpath ${project.build.directory}/classes;${agent.dependencies.classpath}
+                            -Dfile.encoding=UTF-8 
+                            -Dlog4j.configuration=file:/${basedir}/tools/test-log4j.xml                         
+                            -javaagent:${agent.test.wrapper}=namespaces=${agent.test.ns} 
+                        </argLine>
+                        <disableXmlReport>true</disableXmlReport>
+                        <useFile>false</useFile>
+                    </configuration>
                     </plugin>
 
                     <plugin>

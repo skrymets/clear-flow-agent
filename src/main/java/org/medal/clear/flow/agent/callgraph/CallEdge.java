@@ -21,7 +21,7 @@ import org.medal.graph.impl.AbstractEdge;
  *
  * @author skrymets
  */
-public class CallEdge extends AbstractEdge<String, ParticipantData, CallData, ParticipantNode, CallEdge> {
+public class CallEdge extends AbstractEdge<String, ParticipantData, CallData, ParticipantNode, CallEdge> implements Comparable<CallEdge> {
 
     public CallEdge(CallGraph graph, ParticipantNode left, ParticipantNode right, Link link) {
         super(graph, left, right, link);
@@ -31,8 +31,32 @@ public class CallEdge extends AbstractEdge<String, ParticipantData, CallData, Pa
     public String toString() {
         return new StringBuilder()
                 .append("[").append(getLeft()).append("] ")
-                .append("---(").append(getId()).append(")").append((getDirected() == Link.DIRECTED) ? "-->" : "---")
+                .append("---(")
+                .append("E_").append(getId()).append(":").append(getData()).append(")")
+                .append((getDirected() == Link.DIRECTED) ? "-->" : "---")
                 .append(" [").append(getRight()).append("]")
                 .toString();
     }
+
+    @Override
+    public int compareTo(CallEdge obj) {
+        if (this == obj) {
+            return 0;
+        }
+        if (obj == null) {
+            return 1;
+        }
+        if (getData() == null) {
+            if (obj.getData() == null) {
+                return 0;
+            } else {
+                return -1;
+            }
+        } else if (obj.getData() == null) {
+            return 1;
+        } else {
+            return (int) (getData().getCallTime() - obj.getData().getCallTime());
+        }
+    }
+
 }
