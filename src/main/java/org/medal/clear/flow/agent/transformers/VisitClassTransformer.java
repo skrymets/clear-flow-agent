@@ -17,7 +17,6 @@ package org.medal.clear.flow.agent.transformers;
 
 import java.util.Map;
 import javassist.CannotCompileException;
-import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtConstructor;
 import javassist.CtMethod;
@@ -51,7 +50,6 @@ public class VisitClassTransformer extends DefaultClassTransformer {
 
         // ClassPool classPool = cc.getClassPool();
         // classPool.importPackage(LOGGER_PKG);
-
         for (CtConstructor constructor : cc.getConstructors()) {
             try {
                 constructor.insertBefore("System.out.println($class.getName());");
@@ -73,20 +71,24 @@ public class VisitClassTransformer extends DefaultClassTransformer {
 
     private void instrumentMethod(CtClass cc, CtMethod method) throws CannotCompileException {
 
-        boolean skip = method.isEmpty()
+        boolean skipMethod = method.isEmpty()
                 || Modifier.isAbstract(method.getModifiers())
                 || Modifier.isStatic(method.getModifiers());
         //TODO: Process static methods
 
-        if (skip) {
+        if (skipMethod) {
             return;
         }
-        
+
+        final String javaClassName = cc.getName().replace('/', '.');
+        final long classCode = (long) javaClassName.hashCode();
+        updateClassDictionary(classCode, javaClassName);
+
         String methodSignature = generateMethodSignature(method);
-        long messageCode = methodSignature.hashCode();
+        long messageCode = (long) methodSignature.hashCode();
         updateSignatureDictionary(messageCode, methodSignature);
 
-        String entryCode = getMethodEntryCode(messageCode);
+        String entryCode = getMethodEntryCode(classCode, messageCode);
         method.insertBefore(entryCode);
 
         String exitCode = getMethodExitCode();
@@ -96,12 +98,21 @@ public class VisitClassTransformer extends DefaultClassTransformer {
         // method.addCatch(exitCode, );
     }
 
-    private String getMethodEntryCode(long messageCode) {
+    private String getMethodEntryCode(long classCode, long messageCode) {
+        // SequenceLogger.logEntry(long classCode, long instanceCode, long threadCode, long messageCode)
         StringBuilder cb = new StringBuilder();
         cb
-                .append("{")
-                .append(LOGGER_CLASS).append(".logEntry((long)System.identityHashCode($0), ").append(messageCode).append("L").append(");")
-                .append("}");
+                .append("{\n")
+                .append("long instanceCode = System.identityHashCode($0);\n")
+                .append("long threadCode = Thread.currentThread().getName().hashCode();\n")
+                .append(LOGGER_CLASS)
+                .append(".logEntry(")
+                .append(classCode).append("L").append(", ")
+                .append("instanceCode").append(", ")
+                .append(messageCode).append("L").append(", ")
+                .append("threadCode")
+                .append(");")
+                .append("\n}");
         return cb.toString();
     }
 
@@ -114,22 +125,37 @@ public class VisitClassTransformer extends DefaultClassTransformer {
         return cb.toString();
     }
 
-    private void updateSignatureDictionary(long messageCode, String signature) {
-
-        Map<Long, String> signatures = SequenceLogger.getSignatureDictionaries();
-
-        String existingSignature = signatures.putIfAbsent(messageCode, signature);
-        if (existingSignature != null) {
-            LOG.warn("Method signatures code clash! Existing: {} New: {}", existingSignature, signature);
-        }
-    }
-
     private String generateMethodSignature(CtMethod method) {
-
         return new StringBuilder()
                 .append(method.getName())
                 .append(method.getSignature())
                 .toString();
+    }
+
+    private void updateSignatureDictionary(long messageCode, String signature) {
+
+        Map<Long, String> signatures = SequenceLogger.getSignatureDictionary();
+
+        String existingSignature = signatures.putIfAbsent(messageCode, signature);
+//        if (existingSignature != null) {
+//            LOG.warn("Method signatures code clash! Existing: {} New: {}",
+//                    existingSignature,
+//                    signature
+//            );
+//        }
+    }
+
+    private void updateClassDictionary(long classCode, String javaClassName) {
+
+        Map<Long, String> classDictionary = SequenceLogger.getClassDictionary();
+
+        String existingClassName = classDictionary.putIfAbsent(classCode, javaClassName);
+//        if (existingClassName != null) {
+//            LOG.warn("Class name code clash! Existing: {} New: {}",
+//                    existingClassName,
+//                    javaClassName
+//            );
+//        }
 
     }
 

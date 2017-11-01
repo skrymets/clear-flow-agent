@@ -22,14 +22,21 @@ package org.medal.clear.flow.agent.callgraph;
 public class ParticipantData {
 
     private final long instanceCode;
+    private final long classCode;
 
-    public ParticipantData(long instanceCode) {
+    public ParticipantData(long instanceCode, long classCode) {
         this.instanceCode = instanceCode;
+        this.classCode = classCode;
     }
 
     public long getInstanceCode() {
         return instanceCode;
     }
+
+    public long getClassCode() {
+        return classCode;
+    }
+
 
     @Override
     public String toString() {

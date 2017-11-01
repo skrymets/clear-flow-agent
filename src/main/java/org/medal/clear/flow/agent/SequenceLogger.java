@@ -21,15 +21,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentLinkedDeque;
-import org.apache.commons.lang3.ObjectUtils;
 import static org.apache.commons.lang3.ObjectUtils.firstNonNull;
 import org.medal.clear.flow.agent.callgraph.CallData;
 import org.medal.clear.flow.agent.callgraph.CallEdge;
 import org.medal.clear.flow.agent.callgraph.CallGraph;
 import org.medal.clear.flow.agent.callgraph.ParticipantData;
 import org.medal.clear.flow.agent.callgraph.ParticipantNode;
-import org.medal.graph.DataObject;
-import org.medal.graph.Graph;
 
 /**
  *
@@ -38,6 +35,14 @@ import org.medal.graph.Graph;
 public class SequenceLogger {
 
     protected static final long ENTRY_POINT_CODE = 0L;
+
+    public static ThreadLocal<Map<Long, String>> classDictionaries = new ThreadLocal<Map<Long, String>>() {
+        @Override
+        protected Map<Long, String> initialValue() {
+            Map<Long, String> classDictionary = new HashMap<>();
+            return classDictionary;
+        }
+    };
 
     public static ThreadLocal<Map<Long, String>> signatureDictionaries = new ThreadLocal<Map<Long, String>>() {
         @Override
@@ -60,13 +65,13 @@ public class SequenceLogger {
         protected Deque<ParticipantNode> initialValue() {
             CallGraph graph = new CallGraph();
             ConcurrentLinkedDeque<ParticipantNode> deque = new ConcurrentLinkedDeque<>();
-            final ParticipantNode entryPoint = graph.createNode(new ParticipantData(ENTRY_POINT_CODE));
+            final ParticipantNode entryPoint = graph.createNode(new ParticipantData(ENTRY_POINT_CODE, 0L));
             deque.push(entryPoint);
             return deque;
         }
     };
 
-    public static void logEntry(long instanceCode, long messageCode) {
+    public static void logEntry(long classCode, long instanceCode, long messageCode, long threadCode) {
 
         ParticipantNode previousNode = callStack.get().element();
 
@@ -76,12 +81,17 @@ public class SequenceLogger {
             thisNode = existingNodes.get(instanceCode);
         } else {
             thisNode = previousNode.getGraph().createNode();
-            thisNode.setData(new ParticipantData(instanceCode));
+            thisNode.setData(new ParticipantData(instanceCode, classCode));
             existingNodes.put(instanceCode, thisNode);
         }
 
         CallEdge edge = thisNode.connectNodeFromLeft(previousNode);
-        edge.setData(new CallData(System.nanoTime(), messageCode));
+        edge.setData(
+                new CallData(
+                        System.nanoTime(),
+                        threadCode,
+                        messageCode
+                ));
 
         callStack.get().push(thisNode);
     }
@@ -97,13 +107,18 @@ public class SequenceLogger {
 
     }
 
-    public static Map<Long, String> getSignatureDictionaries() {
+    public static Map<Long, String> getSignatureDictionary() {
         return signatureDictionaries.get();
+    }
+
+    public static Map<Long, String> getClassDictionary() {
+        return classDictionaries.get();
     }
 
     public static String getReport() {
 
-        final CallData EMPTY = new CallData(0L, 0L);
+        final CallData EMPTY_CD = new CallData(0L, 0L, 0L);
+        final ParticipantData EMPTY_PD = new ParticipantData(0L, 0L);
 
         CallGraph graph = (CallGraph) callStack.get().element().getGraph();
         Set<CallEdge> calls = new TreeSet<>(graph.getEdges());
@@ -111,11 +126,17 @@ public class SequenceLogger {
         StringBuilder rb = new StringBuilder();
         for (CallEdge call : calls) {
 
-            String messageName = resolveMessageName(firstNonNull(call.getData(), EMPTY));
+            String messageName = resolveMessageName(firstNonNull(call.getData(), EMPTY_CD));
+
+            String leftNodeClass = resolveNodeClassName(firstNonNull(call.getLeft().getData(), EMPTY_PD));
+            String rightNodeClass = resolveNodeClassName(firstNonNull(call.getRight().getData(), EMPTY_PD));
+
             rb
-                    .append(call.getLeft().getId())
-                    .append(" ---> ")
+                    .append(leftNodeClass)
+                    .append(" --- ")
                     .append(messageName)
+                    .append(" --> ")
+                    .append(rightNodeClass)
                     .append("\n");
 
         }
@@ -124,7 +145,11 @@ public class SequenceLogger {
     }
 
     private static String resolveMessageName(CallData data) {
-        return firstNonNull(signatureDictionaries.get().get(data.getMessageCode()), "");
+        return firstNonNull(signatureDictionaries.get().get(data.getMessageCode()), "EMPTY_SIGNATURE");
+    }
+
+    private static String resolveNodeClassName(ParticipantData data) {
+        return firstNonNull(classDictionaries.get().get(data.getClassCode()), "EMPTY_CLASS_NAME");
     }
 
 }

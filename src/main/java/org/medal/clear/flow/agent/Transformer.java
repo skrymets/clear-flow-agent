@@ -22,7 +22,6 @@ import java.security.ProtectionDomain;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
-import static java.util.Objects.requireNonNull;
 import java.util.Set;
 import javassist.CannotCompileException;
 import javassist.ClassPool;

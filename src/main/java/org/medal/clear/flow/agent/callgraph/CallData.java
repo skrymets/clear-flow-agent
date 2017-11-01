@@ -22,10 +22,12 @@ package org.medal.clear.flow.agent.callgraph;
 public class CallData {
 
     private final long callTime;
+    private final long threadCode;
     private final long messageCode;
 
-    public CallData(long callTime, long messageCode) {
-        this.callTime = callTime;
+    public CallData(long nanoTime, long threadCode, long messageCode) {
+        this.callTime = nanoTime;
+        this.threadCode = threadCode;
         this.messageCode = messageCode;
     }
 
@@ -37,15 +39,20 @@ public class CallData {
         return messageCode;
     }
 
+    public long getThreadCode() {
+        return threadCode;
+    }
+
     @Override
     public String toString() {
-        return "" + messageCode + "@" + callTime;
+        return String.valueOf(messageCode);
     }
 
     @Override
     public int hashCode() {
         int hash = 7;
         hash = 13 * hash + (int) (this.callTime ^ (this.callTime >>> 32));
+        hash = 13 * hash + (int) (this.threadCode ^ (this.threadCode >>> 32));
         hash = 13 * hash + (int) (this.messageCode ^ (this.messageCode >>> 32));
         return hash;
     }
@@ -70,6 +77,5 @@ public class CallData {
         }
         return true;
     }
-    
-    
+
 }

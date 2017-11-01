@@ -1,5 +1,7 @@
-package org.medal.test;
+package org.medal.not_instrumented;
 
+import org.medal.test.TestServer;
+import org.medal.test.TestClient;
 import org.junit.Test;
 import static org.junit.Assert.*;
 import org.medal.clear.flow.agent.SequenceLogger;

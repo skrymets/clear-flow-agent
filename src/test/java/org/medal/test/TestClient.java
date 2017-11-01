@@ -19,7 +19,7 @@ package org.medal.test;
  *
  * @author skrymets
  */
-class TestClient {
+public class TestClient {
 
     public int clientMethod(TestServer server) {
         final int serverResponse = server.serverMethod();

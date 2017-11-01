@@ -15,24 +15,21 @@
  */
 package org.medal.test;
 
-import org.medal.clear.flow.agent.SequenceLogger;
-
 /**
  *
  * @author skrymets
  */
-class TestServer {
+public class TestServer {
 
     public int serverMethod() {
-        SequenceLogger.logEntry(((Object) this).hashCode(), (TestServer.class.getName() + ".serverMethod()").hashCode());
         int result = 42;
-        SequenceLogger.logExit();
         return result;
     }
 
     public void serverMethod2() {
-        SequenceLogger.logEntry(((Object) this).hashCode(), (TestServer.class.getName() + ".serverMethod()").hashCode());
-        SequenceLogger.logExit();
+        String guid = "AB_CD_EF";
+        String toLowerCase = guid.toLowerCase();
+        System.out.println(toLowerCase);
     }
 
 }
