@@ -26,7 +26,7 @@ import org.medal.clear.flow.agent.SequenceLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class VisitClassTransformer extends DefaultClassTransformer {
+public class VisitClassTransformer extends AbstractTransformer {
 
     private static final Logger LOG = LoggerFactory.getLogger(VisitClassTransformer.class);
 
@@ -36,14 +36,9 @@ public class VisitClassTransformer extends DefaultClassTransformer {
 
     @Override
     public String getName() {
-        return "visit";
+        return "VisitTransformer";
     }
 
-    @Override
-    public boolean shouldSkip(CtClass cc) {
-        return super.shouldSkip(cc)
-                || cc.isFrozen();
-    }
 
     @Override
     public CtClass transform(final CtClass cc) throws InstrumentationFailedException {
@@ -59,6 +54,10 @@ public class VisitClassTransformer extends DefaultClassTransformer {
         }
 
         for (CtMethod method : cc.getDeclaredMethods()) {
+            if (shouldSkip(method)) {
+                continue;
+            }
+
             try {
                 instrumentMethod(cc, method);
             } catch (CannotCompileException e) {
@@ -69,16 +68,7 @@ public class VisitClassTransformer extends DefaultClassTransformer {
         return cc;
     }
 
-    private void instrumentMethod(CtClass cc, CtMethod method) throws CannotCompileException {
-
-        boolean skipMethod = method.isEmpty()
-                || Modifier.isAbstract(method.getModifiers())
-                || Modifier.isStatic(method.getModifiers());
-        //TODO: Process static methods
-
-        if (skipMethod) {
-            return;
-        }
+    protected void instrumentMethod(CtClass cc, CtMethod method) throws CannotCompileException {
 
         final String javaClassName = cc.getName().replace('/', '.');
         final long classCode = (long) javaClassName.hashCode();
@@ -98,7 +88,7 @@ public class VisitClassTransformer extends DefaultClassTransformer {
         // method.addCatch(exitCode, );
     }
 
-    private String getMethodEntryCode(long classCode, long messageCode) {
+    protected String getMethodEntryCode(long classCode, long messageCode) {
         // SequenceLogger.logEntry(long classCode, long instanceCode, long threadCode, long messageCode)
         StringBuilder cb = new StringBuilder();
         cb
@@ -116,7 +106,7 @@ public class VisitClassTransformer extends DefaultClassTransformer {
         return cb.toString();
     }
 
-    private String getMethodExitCode() {
+    protected String getMethodExitCode() {
         StringBuilder cb = new StringBuilder();
         cb
                 .append("{")
@@ -137,12 +127,12 @@ public class VisitClassTransformer extends DefaultClassTransformer {
         Map<Long, String> signatures = SequenceLogger.getSignatureDictionary();
 
         String existingSignature = signatures.putIfAbsent(messageCode, signature);
-//        if (existingSignature != null) {
-//            LOG.warn("Method signatures code clash! Existing: {} New: {}",
-//                    existingSignature,
-//                    signature
-//            );
-//        }
+        if (existingSignature != null) {
+            LOG.warn("Method signatures code clash! Existing: {} New: {}",
+                    existingSignature,
+                    signature
+            );
+        }
     }
 
     private void updateClassDictionary(long classCode, String javaClassName) {
@@ -150,12 +140,12 @@ public class VisitClassTransformer extends DefaultClassTransformer {
         Map<Long, String> classDictionary = SequenceLogger.getClassDictionary();
 
         String existingClassName = classDictionary.putIfAbsent(classCode, javaClassName);
-//        if (existingClassName != null) {
-//            LOG.warn("Class name code clash! Existing: {} New: {}",
-//                    existingClassName,
-//                    javaClassName
-//            );
-//        }
+        if (existingClassName != null) {
+            LOG.warn("Class name code clash! Existing: {} New: {}",
+                    existingClassName,
+                    javaClassName
+            );
+        }
 
     }
 

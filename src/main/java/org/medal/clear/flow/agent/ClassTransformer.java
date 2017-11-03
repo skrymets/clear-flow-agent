@@ -16,6 +16,7 @@
 package org.medal.clear.flow.agent;
 
 import javassist.CtClass;
+import javassist.CtMethod;
 
 /**
  *
@@ -23,11 +24,15 @@ import javassist.CtClass;
  */
 public interface ClassTransformer {
 
-    public String getName();
+    String getName();
 
-    public boolean accepts(CtClass clazz);
+    boolean accepts(CtClass clazz);
 
-    public boolean shouldSkip(CtClass clazz);
+    boolean accepts(CtMethod method);
+
+    boolean shouldSkip(CtClass clazz);
+
+    boolean shouldSkip(CtMethod method);
 
     public CtClass transform(final CtClass clazz) throws InstrumentationFailedException;
 

@@ -16,14 +16,14 @@
 package org.medal.clear.flow.agent.transformers;
 
 import javassist.CtClass;
+import javassist.CtMethod;
 import org.medal.clear.flow.agent.InstrumentationFailedException;
-import org.medal.clear.flow.agent.ClassTransformer;
 
-public class DefaultClassTransformer implements ClassTransformer {
+public class AllClassTransformer extends AbstractTransformer {
 
     @Override
     public String getName() {
-        return "default";
+        return "AllClassTransformer";
     }
 
     @Override
@@ -33,17 +33,22 @@ public class DefaultClassTransformer implements ClassTransformer {
 
     @Override
     public boolean shouldSkip(CtClass clazz) {
-        return clazz == null 
-                || clazz.isPrimitive() 
-                || clazz.isAnnotation() 
-                || clazz.isInterface() 
-                || clazz.isEnum()
-                || clazz.isArray();
+        return false;
     }
 
     @Override
     public CtClass transform(final CtClass clazz) throws InstrumentationFailedException {
         return clazz;
+    }
+
+    @Override
+    public boolean accepts(CtMethod method) {
+        return false;
+    }
+
+    @Override
+    public boolean shouldSkip(CtMethod method) {
+        return false;
     }
 
 }

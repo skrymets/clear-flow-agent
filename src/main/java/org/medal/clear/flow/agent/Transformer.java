@@ -28,10 +28,10 @@ import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.NotFoundException;
 import static org.apache.commons.lang3.ObjectUtils.firstNonNull;
-import org.medal.clear.flow.agent.transformers.VisitClassTransformer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import static java.util.Objects.requireNonNull;
+import org.medal.clear.flow.agent.transformers.InvokeTransformer;
 
 /**
  *
@@ -46,7 +46,8 @@ class Transformer implements ClassFileTransformer {
     private final Set<ClassTransformer> transformers = new HashSet<>(
             Arrays.asList(
                     // new DefaultClassTransformer(),
-                    new VisitClassTransformer()
+                    // new VisitClassTransformer()
+                    new InvokeTransformer()
             )
     );
 
@@ -81,17 +82,16 @@ class Transformer implements ClassFileTransformer {
             final ProtectionDomain protectionDomain,
             final byte[] classfileBuffer) throws IllegalClassFormatException {
 
-
         requireNonNull(className, "Class name must not be null");
-        
+
         final String javaClassName = className.replace('/', '.');
-        
+
         LOG.trace("CFT0001247: Instrumenting class: {} ...", javaClassName);
-        
+
         byte[] result = classfileBuffer;
-        
+
         ClassPool cp = ClassPool.getDefault();
-        
+
         CtClass clazz;
         try {
             clazz = cp.get(javaClassName);
@@ -120,7 +120,7 @@ class Transformer implements ClassFileTransformer {
             try {
                 result = clazz.toBytecode();
             } catch (IOException | CannotCompileException ex) {
-                LOG.error("CFT0014824 Failed get bytecode of {} due to {}. The class remains untouched.", 
+                LOG.error("CFT0014824 Failed get bytecode of {} due to {}. The class remains untouched.",
                         javaClassName, ex.getMessage()
                 );
             }
