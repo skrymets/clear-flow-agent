@@ -18,6 +18,10 @@
         </layout>
     </appender>
 
+    <logger name="org.medal.test">
+        <level value="TRACE" />
+        <appender-ref ref="FILE"/>
+    </logger>
     <logger name="org.medal.clear.flow">
         <level value="TRACE" />
         <appender-ref ref="FILE"/>

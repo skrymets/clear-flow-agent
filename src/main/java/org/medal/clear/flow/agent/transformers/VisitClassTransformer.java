@@ -15,14 +15,11 @@
  */
 package org.medal.clear.flow.agent.transformers;
 
-import java.util.Map;
 import javassist.CannotCompileException;
 import javassist.CtClass;
 import javassist.CtConstructor;
 import javassist.CtMethod;
-import javassist.Modifier;
 import org.medal.clear.flow.agent.InstrumentationFailedException;
-import org.medal.clear.flow.agent.SequenceLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,15 +27,10 @@ public class VisitClassTransformer extends AbstractTransformer {
 
     private static final Logger LOG = LoggerFactory.getLogger(VisitClassTransformer.class);
 
-    public final String LOGGER_CLASS = SequenceLogger.class.getName();
-
-    public final String LOGGER_PKG = SequenceLogger.class.getPackage().getName();
-
     @Override
     public String getName() {
         return "VisitTransformer";
     }
-
 
     @Override
     public CtClass transform(final CtClass cc) throws InstrumentationFailedException {
@@ -53,39 +45,35 @@ public class VisitClassTransformer extends AbstractTransformer {
             }
         }
 
+        final String javaClassName = cc.getName().replace('/', '.');
+        final long calssId = (long) javaClassName.hashCode();
+        updateClassDictionary(calssId, javaClassName);
+
         for (CtMethod method : cc.getDeclaredMethods()) {
             if (shouldSkip(method)) {
                 continue;
             }
 
             try {
-                instrumentMethod(cc, method);
+
+                String methodSignature = generateMethodSignature(method);
+                long methodId = generateMethodId(javaClassName, methodSignature);
+                updateSignatureDictionary(methodId, methodSignature);
+
+                String entryCode = getMethodEntryCode(calssId, methodId);
+                method.insertBefore(entryCode);
+
+                String exitCode = getMethodExitCode();
+                method.insertAfter(exitCode);
+
+                // String failureCode = getFailureExitCode(method);
+                // method.addCatch(exitCode, );
             } catch (CannotCompileException e) {
                 throw new InstrumentationFailedException(e);
             }
         }
 
         return cc;
-    }
-
-    protected void instrumentMethod(CtClass cc, CtMethod method) throws CannotCompileException {
-
-        final String javaClassName = cc.getName().replace('/', '.');
-        final long classCode = (long) javaClassName.hashCode();
-        updateClassDictionary(classCode, javaClassName);
-
-        String methodSignature = generateMethodSignature(method);
-        long messageCode = (long) methodSignature.hashCode();
-        updateSignatureDictionary(messageCode, methodSignature);
-
-        String entryCode = getMethodEntryCode(classCode, messageCode);
-        method.insertBefore(entryCode);
-
-        String exitCode = getMethodExitCode();
-        method.insertAfter(exitCode);
-
-        // String failureCode = getFailureExitCode(method);
-        // method.addCatch(exitCode, );
     }
 
     protected String getMethodEntryCode(long classCode, long messageCode) {
@@ -95,7 +83,7 @@ public class VisitClassTransformer extends AbstractTransformer {
                 .append("{\n")
                 .append("long instanceCode = System.identityHashCode($0);\n")
                 .append("long threadCode = Thread.currentThread().getName().hashCode();\n")
-                .append(LOGGER_CLASS)
+                .append(CALL_LOGGER)
                 .append(".logEntry(")
                 .append(classCode).append("L").append(", ")
                 .append("instanceCode").append(", ")
@@ -110,43 +98,8 @@ public class VisitClassTransformer extends AbstractTransformer {
         StringBuilder cb = new StringBuilder();
         cb
                 .append("{")
-                .append(LOGGER_CLASS).append(".logExit();")
+                .append(CALL_LOGGER).append(".logExit();")
                 .append("}");
         return cb.toString();
     }
-
-    private String generateMethodSignature(CtMethod method) {
-        return new StringBuilder()
-                .append(method.getName())
-                .append(method.getSignature())
-                .toString();
-    }
-
-    private void updateSignatureDictionary(long messageCode, String signature) {
-
-        Map<Long, String> signatures = SequenceLogger.getSignatureDictionary();
-
-        String existingSignature = signatures.putIfAbsent(messageCode, signature);
-        if (existingSignature != null) {
-            LOG.warn("Method signatures code clash! Existing: {} New: {}",
-                    existingSignature,
-                    signature
-            );
-        }
-    }
-
-    private void updateClassDictionary(long classCode, String javaClassName) {
-
-        Map<Long, String> classDictionary = SequenceLogger.getClassDictionary();
-
-        String existingClassName = classDictionary.putIfAbsent(classCode, javaClassName);
-        if (existingClassName != null) {
-            LOG.warn("Class name code clash! Existing: {} New: {}",
-                    existingClassName,
-                    javaClassName
-            );
-        }
-
-    }
-
 }

@@ -21,7 +21,8 @@ package org.medal.test;
  */
 public class TestServer {
 
-    public int serverMethod() {
+    public int serverMethod(String version) {
+        System.out.println(version);
         int result = 42;
         return result;
     }

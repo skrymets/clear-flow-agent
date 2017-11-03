@@ -15,15 +15,45 @@
  */
 package org.medal.test;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  *
  * @author skrymets
  */
 public class TestClient {
 
+    private static final Logger LOG = LoggerFactory.getLogger(TestClient.class);
+
+    private final String clientVersion;
+
+    public TestClient() {
+
+        StringBuilder versionString = new StringBuilder();
+        versionString.append("1").append(".").append("0");
+        clientVersion = versionString.toString();
+
+    }
+
+    public String getClientVersion() {
+        return clientVersion;
+    }
+
     public int clientMethod(TestServer server) {
-        final int serverResponse = server.serverMethod();
+
+        LOG.info("{} {}",
+                LOG.getName(),
+                getClientVersion()
+        );
+
+        StringBuilder vs = new StringBuilder();
+        vs.append(clientVersion).append("_").append("0001");
+        String callVersion = vs.toString();
+
+        final int serverResponse = server.serverMethod(callVersion);
         server.serverMethod2();
+        
         return serverResponse;
     }
 

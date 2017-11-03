@@ -71,32 +71,48 @@ public class SequenceLogger {
         }
     };
 
-    public static void logEntry(long classCode, long instanceCode, long messageCode, long threadCode) {
+    /**
+     * Create a call log record.
+     *
+     * @param sourceClassId    a class identifier of an object that makes this call
+     * @param sourceInstanceId an instance identifier of an object that makes this call
+     * @param targetClassId    a class identifier of an object whose instance is being
+     *                         called
+     * @param targetMethodId   an identifier of an method that is being called
+     * @param threadId         an identifier of a thread in which this call has been made
+     */
+    public static void logMethodCall(
+            long sourceClassId,
+            long sourceInstanceId,
+            long targetClassId,
+            long targetMethodId,
+            long threadId
+    ) {
 
         ParticipantNode previousNode = callStack.get().element();
 
         ParticipantNode thisNode;
         final Map<Long, ParticipantNode> existingNodes = nodesCache.get();
-        if (existingNodes.containsKey(instanceCode)) {
-            thisNode = existingNodes.get(instanceCode);
+        if (existingNodes.containsKey(sourceInstanceId)) {
+            thisNode = existingNodes.get(sourceInstanceId);
         } else {
             thisNode = previousNode.getGraph().createNode();
-            thisNode.setData(new ParticipantData(instanceCode, classCode));
-            existingNodes.put(instanceCode, thisNode);
+            thisNode.setData(new ParticipantData(sourceInstanceId, sourceClassId));
+            existingNodes.put(sourceInstanceId, thisNode);
         }
 
         CallEdge edge = thisNode.connectNodeFromLeft(previousNode);
         edge.setData(
                 new CallData(
                         System.nanoTime(),
-                        threadCode,
-                        messageCode
+                        threadId,
+                        targetMethodId
                 ));
 
         callStack.get().push(thisNode);
     }
 
-    public static void logExit() {
+    public static void logReturnFromMethod(long classId, long instanceId, long methodId, long threadId) {
 
         Deque<ParticipantNode> deque = callStack.get();
         if (deque.isEmpty()) {
