@@ -21,10 +21,10 @@ public class Agent {
         LOG.info("FA00001197: Agent started.");
 
         Map<String, String> properties = readInitString(args);
-        
+
         Set<String> packagesToInstrument = readNamespaces(properties.get(PARAM_NAMESPACES));
         LOG.trace("FA00006462 Packages to be instrumented {}", packagesToInstrument);
-        
+
         inst.addTransformer(new Transformer(packagesToInstrument));
     }
 
@@ -55,6 +55,15 @@ public class Agent {
         return properties;
     }
 
+    /**
+     * Extract a list of packages names from a string by <code>";"</code> separator.
+     * Present each package name in a <i>normalized</i> form, i.e.
+     * <code>java.util.concurrency</code> to <code>java/util/concurrency</code>.
+     *
+     * @param namespaces is a name of a package that should be instrumented
+     *
+     * @return a set of package names, or empty set. Never <code>null</code>.
+     */
     private static Set<String> readNamespaces(String namespaces) {
 
         if (isBlank(namespaces)) {

@@ -45,10 +45,11 @@
     </dependency>
 
     <dependency>
-        <groupId>javassist</groupId>
+        <groupId>org.javassist</groupId>
         <artifactId>javassist</artifactId>
-        <version>3.12.1.GA</version>
+        <version>3.22.0-GA</version>
     </dependency>
+
     
     <dependency>
         <groupId>org.medal</groupId>
@@ -112,18 +113,18 @@
                         In order to be able to debug the code this line should be applied to 
                         the argLine: 
 
-                            -Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005 
-                        -->
-                        <argLine>
-                            -Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005 
-                            -classpath ${project.build.directory}/classes;${agent.dependencies.classpath}
-                            -Dfile.encoding=UTF-8 
-                            -Dlog4j.configuration=file:/${basedir}/tools/test-log4j.xml                         
-                            -javaagent:${agent.test.wrapper}=namespaces=${agent.test.ns} 
-                        </argLine>
-                        <disableXmlReport>true</disableXmlReport>
-                        <useFile>false</useFile>
-                    </configuration>
+                                -Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005 
+                            -->
+                            <argLine>
+                                -Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005 
+                                -classpath ${project.build.directory}/classes;${agent.dependencies.classpath}
+                                -Dfile.encoding=UTF-8 
+                                -Dlog4j.configuration=file:/${basedir}/tools/test-log4j.xml                         
+                                -javaagent:${agent.test.wrapper}=namespaces=${agent.test.ns} 
+                            </argLine>
+                            <disableXmlReport>true</disableXmlReport>
+                            <useFile>false</useFile>
+                        </configuration>
                     </plugin>
 
                     <plugin>
