@@ -69,15 +69,14 @@ public class CallGraph extends AbstractGraph<String, ParticipantData, CallData, 
         return edgesInfo.toString();
     }
 
-    public ParticipantNode findParticipant(long classId, long instanceId) {
+    public ParticipantNode findParticipant(long classId) {
         return getNodes()
                 .stream()
                 .filter((node) -> {
                     return node.getData() != null;
                 })
                 .filter((ParticipantNode node) -> {
-                    return node.getData().getClassCode() == classId
-                            && node.getData().getInstanceCode() == instanceId;
+                    return node.getData().getClassId() == classId;
                 })
                 .findFirst()
                 .orElse(null);

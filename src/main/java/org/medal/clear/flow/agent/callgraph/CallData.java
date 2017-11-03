@@ -22,38 +22,45 @@ package org.medal.clear.flow.agent.callgraph;
 public class CallData {
 
     private final long callTime;
-    private final long threadCode;
-    private final long messageCode;
+    private final long callerId;
+    private final long threadId;
+    private final long methodId;
 
-    public CallData(long nanoTime, long threadCode, long messageCode) {
+    public CallData(long nanoTime, long callerId, long methodId, long threadId) {
         this.callTime = nanoTime;
-        this.threadCode = threadCode;
-        this.messageCode = messageCode;
+        this.threadId = threadId;
+        this.methodId = methodId;
+        this.callerId = callerId;
     }
 
     public long getCallTime() {
         return callTime;
     }
 
-    public long getMessageCode() {
-        return messageCode;
+    public long getMethodId() {
+        return methodId;
     }
 
-    public long getThreadCode() {
-        return threadCode;
+    public long getThreadId() {
+        return threadId;
+    }
+
+    public long getCallerId() {
+        return callerId;
     }
 
     @Override
     public String toString() {
-        return String.valueOf(messageCode);
+        return String.valueOf(methodId);
     }
 
     @Override
     public int hashCode() {
         int hash = 7;
         hash = 13 * hash + (int) (this.callTime ^ (this.callTime >>> 32));
-        hash = 13 * hash + (int) (this.threadCode ^ (this.threadCode >>> 32));
-        hash = 13 * hash + (int) (this.messageCode ^ (this.messageCode >>> 32));
+        hash = 13 * hash + (int) (this.threadId ^ (this.threadId >>> 32));
+        hash = 13 * hash + (int) (this.methodId ^ (this.methodId >>> 32));
+        hash = 13 * hash + (int) (this.callerId ^ (this.callerId >>> 32));
         return hash;
     }
 
@@ -72,7 +79,13 @@ public class CallData {
         if (this.callTime != other.callTime) {
             return false;
         }
-        if (this.messageCode != other.messageCode) {
+        if (this.methodId != other.methodId) {
+            return false;
+        }
+        if (this.threadId != other.threadId) {
+            return false;
+        }
+        if (this.callerId != other.callerId) {
             return false;
         }
         return true;

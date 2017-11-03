@@ -15,7 +15,6 @@
  */
 package org.medal.clear.flow.agent.transformers;
 
-import java.util.logging.Level;
 import javassist.CannotCompileException;
 import javassist.CtClass;
 import javassist.CtField;
@@ -24,7 +23,6 @@ import javassist.Modifier;
 import javassist.NotFoundException;
 import javassist.expr.ExprEditor;
 import javassist.expr.MethodCall;
-import javassist.expr.NewExpr;
 import org.medal.clear.flow.agent.InstrumentationFailedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +35,8 @@ public class InvokeTransformer extends AbstractTransformer {
     public boolean shouldSkip(CtClass cc) {
         return super.shouldSkip(cc)
                 || cc.getPackageName().startsWith("java/lang")
-                || cc.getPackageName().startsWith("java/io");
+                || cc.getPackageName().startsWith("java/io")
+                ;
 
     }
 
@@ -55,7 +54,7 @@ public class InvokeTransformer extends AbstractTransformer {
         CtMethod logCallMethod;
         CtMethod logReturn;
         try {
-            cc.addField(new CtField(CtClass.longType, "thisCalssId", cc), CtField.Initializer.constant(thisCalssId));
+            cc.addField(new CtField(CtClass.longType, "thisClassId", cc), CtField.Initializer.constant(thisCalssId));
 
             logCallMethod = new CtMethod(CtClass.voidType, "logCall",
                     new CtClass[]{
@@ -160,10 +159,10 @@ public class InvokeTransformer extends AbstractTransformer {
                     .append("long instanceId = System.identityHashCode($0);\n")
                     .append("long threadId = Thread.currentThread().getName().hashCode();\n")
                     .append(CALL_LOGGER).append(".logMethodCall(")
-                    .append("(long) $0.thisCalssId").append(", ")
+                    .append("(long) $0.thisClassId").append(", ")
                     .append("instanceId").append(", ")
                     .append("(long) $1").append(", ")
-                    .append("(long).append(\"(long) $1\").append(\", \") $2").append(", ")
+                    .append("(long) $2").append(", ")
                     .append("threadId")
                     .append(");")
                     .append("}")
@@ -183,7 +182,7 @@ public class InvokeTransformer extends AbstractTransformer {
                     .append("long instanceId = System.identityHashCode($0);\n")
                     .append("long threadId = Thread.currentThread().getName().hashCode();\n")
                     .append(CALL_LOGGER).append(".logReturnFromMethod(")
-                    .append("(long) $0.calssId").append(", ")
+                    .append("(long) $0.thisClassId").append(", ")
                     .append("instanceId").append(", ")
                     .append("(long) $1").append(", ")
                     .append("threadId")
@@ -198,7 +197,7 @@ public class InvokeTransformer extends AbstractTransformer {
             cc.setModifiers(cc.getModifiers() & ~Modifier.ABSTRACT);
 
         } catch (CannotCompileException ex) {
-            LOG.error("IT00685156 Failed to instrument log mthod for {} due to: {}", cc.getName(), ex.getReason());
+            LOG.error("IT00685157 Failed to instrument log mthod for {} due to: {}", cc.getName(), ex.getReason());
             return cc;
         }
 

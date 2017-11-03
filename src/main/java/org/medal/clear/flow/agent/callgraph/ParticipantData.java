@@ -21,32 +21,25 @@ package org.medal.clear.flow.agent.callgraph;
  */
 public class ParticipantData {
 
-    private final long instanceCode;
-    private final long classCode;
+    private final long classId;
 
-    public ParticipantData(long classCode, long instanceCode) {
-        this.instanceCode = instanceCode;
-        this.classCode = classCode;
+    public ParticipantData(long classId) {
+        this.classId = classId;
     }
 
-    public long getInstanceCode() {
-        return instanceCode;
+    public long getClassId() {
+        return classId;
     }
-
-    public long getClassCode() {
-        return classCode;
-    }
-
 
     @Override
     public String toString() {
-        return "" + instanceCode;
+        return "" + classId;
     }
 
     @Override
     public int hashCode() {
         int hash = 3;
-        hash = 11 * hash + (int) (this.instanceCode ^ (this.instanceCode >>> 32));
+        hash = 11 * hash + (int) (this.classId ^ (this.classId >>> 32));
         return hash;
     }
 
@@ -62,7 +55,7 @@ public class ParticipantData {
             return false;
         }
         final ParticipantData other = (ParticipantData) obj;
-        if (this.instanceCode != other.instanceCode) {
+        if (this.classId != other.classId) {
             return false;
         }
         return true;

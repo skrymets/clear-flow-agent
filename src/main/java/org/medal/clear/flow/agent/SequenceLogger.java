@@ -52,14 +52,13 @@ public class SequenceLogger {
         }
     };
 
-    public static ThreadLocal<CallGraph> callCraphsCache = new ThreadLocal<CallGraph>() {
+    public static ThreadLocal<CallGraph> callGraphsCache = new ThreadLocal<CallGraph>() {
         @Override
         protected CallGraph initialValue() {
             CallGraph callGraph = new CallGraph();
             return callGraph;
         }
     };
-
 
     /**
      * Create a call log record.
@@ -79,32 +78,31 @@ public class SequenceLogger {
             long threadId
     ) {
 
-        CallGraph callGraph = callCraphsCache.get();
-        ParticipantNode sourceParticipant = callGraph.findParticipant(sourceClassId, sourceInstanceId);
+        CallGraph callGraph = callGraphsCache.get();
+        ParticipantNode sourceParticipant = callGraph.findParticipant(sourceClassId);
         if (sourceParticipant == null) {
             sourceParticipant = callGraph.createNode();
-            sourceParticipant.setData(new ParticipantData(sourceClassId, sourceInstanceId));
+            sourceParticipant.setData(new ParticipantData(sourceClassId));
         }
 
-        CallEdge edge = sourceNode.connectNodeFromLeft(previousNode);
+        ParticipantNode targetParticipant = callGraph.findParticipant(targetClassId);
+        if (targetParticipant == null) {
+            targetParticipant = callGraph.createNode();
+            targetParticipant.setData(new ParticipantData(targetClassId));
+        }
+
+        CallEdge edge = sourceParticipant.connectNodeFromRight(targetParticipant);
         edge.setData(
                 new CallData(
                         System.nanoTime(),
-                        threadId,
-                        targetMethodId
+                        sourceInstanceId,
+                        targetMethodId,
+                        threadId
                 ));
 
-        callStack.get().push(sourceNode);
     }
 
     public static void logReturnFromMethod(long classId, long instanceId, long methodId, long threadId) {
-
-        Deque<ParticipantNode> deque = callStack.get();
-        if (deque.isEmpty()) {
-            return;
-        }
-
-        deque.pop();
 
     }
 
@@ -115,13 +113,17 @@ public class SequenceLogger {
     public static Map<Long, String> getClassDictionary() {
         return classDictionaries.get();
     }
+    
+    public static CallGraph getCallGraph() {
+        return callGraphsCache.get();
+    }
 
     public static String getReport() {
 
-        final CallData EMPTY_CD = new CallData(0L, 0L, 0L);
-        final ParticipantData EMPTY_PD = new ParticipantData(0L, 0L);
+        final CallData EMPTY_CD = new CallData(0L, 0L, 0L, 0L);
+        final ParticipantData EMPTY_PD = new ParticipantData(0L);
 
-        CallGraph graph = (CallGraph) callStack.get().element().getGraph();
+        CallGraph graph = getCallGraph();
         Set<CallEdge> calls = new TreeSet<>(graph.getEdges());
 
         StringBuilder rb = new StringBuilder();
@@ -146,11 +148,11 @@ public class SequenceLogger {
     }
 
     private static String resolveMessageName(CallData data) {
-        return firstNonNull(signatureDictionaries.get().get(data.getMessageCode()), "EMPTY_SIGNATURE");
+        return firstNonNull(signatureDictionaries.get().get(data.getMethodId()), "EMPTY_SIGNATURE");
     }
 
     private static String resolveNodeClassName(ParticipantData data) {
-        return firstNonNull(classDictionaries.get().get(data.getClassCode()), "EMPTY_CLASS_NAME");
+        return firstNonNull(classDictionaries.get().get(data.getClassId()), "EMPTY_CLASS_NAME");
     }
 
 }
