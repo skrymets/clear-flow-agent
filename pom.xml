@@ -19,7 +19,7 @@
 
     <agent.class>org.medal.clear.flow.agent.Agent</agent.class>
     <agent.test.wrapper>${basedir}/flowagent.jar</agent.test.wrapper>
-    <agent.test.ns>org.medal.test</agent.test.ns>
+    <agent.test.ns>org.medal.graph.impl</agent.test.ns>
 
 </properties>
 
