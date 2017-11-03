@@ -24,7 +24,7 @@ public class ParticipantData {
     private final long instanceCode;
     private final long classCode;
 
-    public ParticipantData(long instanceCode, long classCode) {
+    public ParticipantData(long classCode, long instanceCode) {
         this.instanceCode = instanceCode;
         this.classCode = classCode;
     }

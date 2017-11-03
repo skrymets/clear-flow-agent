@@ -52,24 +52,14 @@ public class SequenceLogger {
         }
     };
 
-    public static ThreadLocal<Map<Long, ParticipantNode>> nodesCache = new ThreadLocal<Map<Long, ParticipantNode>>() {
+    public static ThreadLocal<CallGraph> callCraphsCache = new ThreadLocal<CallGraph>() {
         @Override
-        protected Map<Long, ParticipantNode> initialValue() {
-            Map<Long, ParticipantNode> map = new HashMap<>();
-            return map;
+        protected CallGraph initialValue() {
+            CallGraph callGraph = new CallGraph();
+            return callGraph;
         }
     };
 
-    public static ThreadLocal<Deque<ParticipantNode>> callStack = new ThreadLocal<Deque<ParticipantNode>>() {
-        @Override
-        protected Deque<ParticipantNode> initialValue() {
-            CallGraph graph = new CallGraph();
-            ConcurrentLinkedDeque<ParticipantNode> deque = new ConcurrentLinkedDeque<>();
-            final ParticipantNode entryPoint = graph.createNode(new ParticipantData(ENTRY_POINT_CODE, 0L));
-            deque.push(entryPoint);
-            return deque;
-        }
-    };
 
     /**
      * Create a call log record.
@@ -89,19 +79,14 @@ public class SequenceLogger {
             long threadId
     ) {
 
-        ParticipantNode previousNode = callStack.get().element();
-
-        ParticipantNode thisNode;
-        final Map<Long, ParticipantNode> existingNodes = nodesCache.get();
-        if (existingNodes.containsKey(sourceInstanceId)) {
-            thisNode = existingNodes.get(sourceInstanceId);
-        } else {
-            thisNode = previousNode.getGraph().createNode();
-            thisNode.setData(new ParticipantData(sourceInstanceId, sourceClassId));
-            existingNodes.put(sourceInstanceId, thisNode);
+        CallGraph callGraph = callCraphsCache.get();
+        ParticipantNode sourceParticipant = callGraph.findParticipant(sourceClassId, sourceInstanceId);
+        if (sourceParticipant == null) {
+            sourceParticipant = callGraph.createNode();
+            sourceParticipant.setData(new ParticipantData(sourceClassId, sourceInstanceId));
         }
 
-        CallEdge edge = thisNode.connectNodeFromLeft(previousNode);
+        CallEdge edge = sourceNode.connectNodeFromLeft(previousNode);
         edge.setData(
                 new CallData(
                         System.nanoTime(),
@@ -109,7 +94,7 @@ public class SequenceLogger {
                         targetMethodId
                 ));
 
-        callStack.get().push(thisNode);
+        callStack.get().push(sourceNode);
     }
 
     public static void logReturnFromMethod(long classId, long instanceId, long methodId, long threadId) {
