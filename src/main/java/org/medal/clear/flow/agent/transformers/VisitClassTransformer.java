@@ -47,7 +47,7 @@ public class VisitClassTransformer extends AbstractTransformer {
 
         final String javaClassName = cc.getName().replace('/', '.');
         final long calssId = (long) javaClassName.hashCode();
-        updateClassDictionary(calssId, javaClassName);
+        updateClassDictionary(calssId, javaClassName, true);
 
         for (CtMethod method : cc.getDeclaredMethods()) {
             if (shouldSkip(method)) {
@@ -58,7 +58,8 @@ public class VisitClassTransformer extends AbstractTransformer {
 
                 String methodSignature = generateMethodSignature(method);
                 long methodId = generateMethodId(javaClassName, methodSignature);
-                updateSignatureDictionary(methodId, methodSignature);
+                final boolean uniqueSignature = true;
+                updateSignatureDictionary(methodId, methodSignature, uniqueSignature);
 
                 String entryCode = getMethodEntryCode(calssId, methodId);
                 method.insertBefore(entryCode);

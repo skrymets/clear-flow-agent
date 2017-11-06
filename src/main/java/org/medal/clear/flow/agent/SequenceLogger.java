@@ -15,12 +15,10 @@
  */
 package org.medal.clear.flow.agent;
 
-import java.util.Deque;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.concurrent.ConcurrentLinkedDeque;
 import static org.apache.commons.lang3.ObjectUtils.firstNonNull;
 import org.medal.clear.flow.agent.callgraph.CallData;
 import org.medal.clear.flow.agent.callgraph.CallEdge;
@@ -36,29 +34,11 @@ public class SequenceLogger {
 
     protected static final long ENTRY_POINT_CODE = 0L;
 
-    public static ThreadLocal<Map<Long, String>> classDictionaries = new ThreadLocal<Map<Long, String>>() {
-        @Override
-        protected Map<Long, String> initialValue() {
-            Map<Long, String> classDictionary = new HashMap<>();
-            return classDictionary;
-        }
-    };
+    public static ThreadLocal<Map<Long, String>> classDictionaries = createClassDictionaries();
 
-    public static ThreadLocal<Map<Long, String>> signatureDictionaries = new ThreadLocal<Map<Long, String>>() {
-        @Override
-        protected Map<Long, String> initialValue() {
-            Map<Long, String> signatureDictionary = new HashMap<>();
-            return signatureDictionary;
-        }
-    };
+    public static ThreadLocal<Map<Long, String>> signatureDictionaries = createCignatureDictionaries();
 
-    public static ThreadLocal<CallGraph> callGraphsCache = new ThreadLocal<CallGraph>() {
-        @Override
-        protected CallGraph initialValue() {
-            CallGraph callGraph = new CallGraph();
-            return callGraph;
-        }
-    };
+    public static ThreadLocal<CallGraph> callGraphsCache = createCallGraphCache();
 
     /**
      * Create a call log record.
@@ -102,6 +82,14 @@ public class SequenceLogger {
 
     }
 
+    private static final Object resetLock = new Object();
+
+    public static void reset() {
+        synchronized (resetLock) {
+            callGraphsCache = createCallGraphCache();
+        }
+    }
+
     public static void logReturnFromMethod(long classId, long instanceId, long methodId, long threadId) {
 
     }
@@ -113,7 +101,7 @@ public class SequenceLogger {
     public static Map<Long, String> getClassDictionary() {
         return classDictionaries.get();
     }
-    
+
     public static CallGraph getCallGraph() {
         return callGraphsCache.get();
     }
@@ -153,6 +141,36 @@ public class SequenceLogger {
 
     private static String resolveNodeClassName(ParticipantData data) {
         return firstNonNull(classDictionaries.get().get(data.getClassId()), "EMPTY_CLASS_NAME");
+    }
+
+    private static ThreadLocal<CallGraph> createCallGraphCache() {
+        return new ThreadLocal<CallGraph>() {
+            @Override
+            protected CallGraph initialValue() {
+                CallGraph callGraph = new CallGraph();
+                return callGraph;
+            }
+        };
+    }
+
+    private static ThreadLocal<Map<Long, String>> createCignatureDictionaries() {
+        return new ThreadLocal<Map<Long, String>>() {
+            @Override
+            protected Map<Long, String> initialValue() {
+                Map<Long, String> signatureDictionary = new HashMap<>();
+                return signatureDictionary;
+            }
+        };
+    }
+
+    private static ThreadLocal<Map<Long, String>> createClassDictionaries() {
+        return new ThreadLocal<Map<Long, String>>() {
+            @Override
+            protected Map<Long, String> initialValue() {
+                Map<Long, String> classDictionary = new HashMap<>();
+                return classDictionary;
+            }
+        };
     }
 
 }

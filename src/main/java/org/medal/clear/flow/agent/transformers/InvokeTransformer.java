@@ -33,10 +33,12 @@ public class InvokeTransformer extends AbstractTransformer {
 
     @Override
     public boolean shouldSkip(CtClass cc) {
+
+        boolean skipByModifier = false; // Modifier.isFinal(cc.getModifiers());
+        boolean skipPlatformClasses = isPlatformClass(cc);
+
         return super.shouldSkip(cc)
-                || cc.getPackageName().startsWith("java/lang")
-                || cc.getPackageName().startsWith("java/io")
-                ;
+                || skipPlatformClasses;
 
     }
 
@@ -49,14 +51,14 @@ public class InvokeTransformer extends AbstractTransformer {
     public CtClass transform(CtClass cc) throws InstrumentationFailedException {
 
         final long thisCalssId = (long) cc.getName().hashCode();
-        updateClassDictionary(thisCalssId, cc.getName());
+        updateClassDictionary(thisCalssId, cc.getName(), true);
 
         CtMethod logCallMethod;
         CtMethod logReturn;
         try {
             cc.addField(new CtField(CtClass.longType, "thisClassId", cc), CtField.Initializer.constant(thisCalssId));
 
-            logCallMethod = new CtMethod(CtClass.voidType, "logCall",
+            logCallMethod = new CtMethod(CtClass.voidType, "logCall__00946773",
                     new CtClass[]{
                         CtClass.longType, // target class id
                         CtClass.longType, // target method id
@@ -64,7 +66,7 @@ public class InvokeTransformer extends AbstractTransformer {
                     cc);
             cc.addMethod(logCallMethod);
 
-            logReturn = new CtMethod(CtClass.voidType, "logReturn", new CtClass[]{CtClass.longType}, cc);
+            logReturn = new CtMethod(CtClass.voidType, "logReturn__00946790", new CtClass[]{CtClass.longType}, cc);
             cc.addMethod(logReturn);
 
         } catch (CannotCompileException ex) {
@@ -83,7 +85,10 @@ public class InvokeTransformer extends AbstractTransformer {
 
             String thisMethodSignature = generateMethodSignature(method);
             long thisMethodId = generateMethodId(cc.getName(), thisMethodSignature);
-            updateSignatureDictionary(thisMethodId, thisMethodSignature);
+            boolean UNIQUE_SIGNATURE = true;
+            boolean NON_UNIQUE_SIGNATURE = false;
+            
+            updateSignatureDictionary(thisMethodId, thisMethodSignature, UNIQUE_SIGNATURE);
 
             // ***************************************************************************
             // Log all the internal calls 
@@ -103,14 +108,14 @@ public class InvokeTransformer extends AbstractTransformer {
                         }
 
                         long targetMethodId = generateMethodId(m.getClassName(), targetMethodSignature);
-                        updateSignatureDictionary(targetMethodId, targetMethodSignature);
+                        updateSignatureDictionary(targetMethodId, targetMethodSignature, NON_UNIQUE_SIGNATURE);
 
                         long targetCalssId = (long) m.getClassName().hashCode();
-                        updateClassDictionary(targetCalssId, m.getClassName());
+                        updateClassDictionary(targetCalssId, m.getClassName(), false);
 
                         LOG.trace("{}: {}.{}{}", m.getLineNumber(), m.getClassName(), m.getMethodName(), m.getSignature());
                         m.replace("{ "
-                                + "logCall("
+                                + "logCall__00946773("
                                 + "(long)" + targetCalssId + ", "
                                 + "(long)" + targetMethodId + "); "
                                 + "$_ = $proceed($$); "
@@ -131,7 +136,7 @@ public class InvokeTransformer extends AbstractTransformer {
             // Log return from this method
             // ***************************************************************************
             try {
-                method.insertAfter("{ logReturn((long) " + thisMethodId + "); }");
+                method.insertAfter("{ logReturn__00946790((long) " + thisMethodId + "); }");
             } catch (CannotCompileException ex) {
                 LOG.error("IT00682901 Failed to add log return code for  {}.{}{} due to: {}",
                         cc.getName(), method.getName(), method.getSignature(), ex.getReason());

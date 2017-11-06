@@ -15,6 +15,8 @@
  */
 package org.medal.clear.flow.agent.transformers;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import javassist.CtClass;
 import javassist.CtMethod;
@@ -26,6 +28,21 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public abstract class AbstractTransformer implements ClassTransformer {
+
+    protected static final List<String> platformPackages = Arrays.asList(
+            "java/applet", "java/awt", "java/beans", "java/io", "java/lang", "java/math", "java/net",
+            "java/nio", "java/rmi", "java/security", "java/sql", "java/text", "java/time", "java/util"
+    );
+
+    public static boolean isPlatformClass(CtClass clazz) {
+        if (clazz == null) {
+            return false;
+        } else {
+            return (platformPackages.stream().filter((p) -> {
+                return clazz.getName().startsWith(p);
+            }).count() > 0);
+        }
+    }
 
     private static final Logger LOG = LoggerFactory.getLogger(ClassTransformer.class);
 
@@ -75,10 +92,10 @@ public abstract class AbstractTransformer implements ClassTransformer {
                 .toString();
     }
 
-    protected void updateClassDictionary(long classCode, String javaClassName) {
+    protected void updateClassDictionary(long classCode, String javaClassName, boolean uniqueClassName) {
         Map<Long, String> classDictionary = SequenceLogger.getClassDictionary();
         String existingClassName = classDictionary.putIfAbsent(classCode, javaClassName);
-        if (existingClassName != null) {
+        if (existingClassName != null && uniqueClassName) {
             LOG.warn("AA00682945 Class name code clash! Existing: {} New: {}",
                     existingClassName,
                     javaClassName
@@ -86,11 +103,11 @@ public abstract class AbstractTransformer implements ClassTransformer {
         }
     }
 
-    protected void updateSignatureDictionary(long messageCode, String signature) {
+    protected void updateSignatureDictionary(long messageCode, String signature, boolean uniqueSignature) {
         Map<Long, String> signatures = SequenceLogger.getSignatureDictionary();
 
         String existingSignature = signatures.putIfAbsent(messageCode, signature);
-        if (existingSignature != null) {
+        if (existingSignature != null && uniqueSignature) {
             LOG.warn("AT00682943 Method signatures code clash! Existing: {} New: {}",
                     existingSignature,
                     signature);

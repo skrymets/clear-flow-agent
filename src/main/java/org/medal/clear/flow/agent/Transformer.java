@@ -30,7 +30,6 @@ import javassist.NotFoundException;
 import static org.apache.commons.lang3.ObjectUtils.firstNonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import static java.util.Objects.requireNonNull;
 import org.medal.clear.flow.agent.transformers.InvokeTransformer;
 
 /**
@@ -68,65 +67,58 @@ class Transformer implements ClassFileTransformer {
 
         for (String instrumentablePackageName : packagesToInstrument) {
             if (className.startsWith(instrumentablePackageName)) {
-                return applyTransformations(loader, className, classBeingRedefined, protectionDomain, classfileBuffer);
+                final String javaClassName = className.replace('/', '.');
+
+                ClassPool cp = ClassPool.getDefault();
+                CtClass clazz;
+                try {
+                    clazz = cp.get(javaClassName);
+                } catch (NotFoundException ex) {
+                    LOG.error("CFT0064585 Can not find class {}", javaClassName);
+                    return null;
+                }
+
+                CtClass transformedClass = applyTransformations(clazz);
+
+                // Apply changes to bytecode if there are any
+                if (clazz.isModified()) {
+                    byte[] bytecode;
+                    try {
+                        bytecode = transformedClass.toBytecode();
+                    } catch (IOException | CannotCompileException ex) {
+                        LOG.error("CFT0014824 Failed get bytecode of {} due to {}. The class remains untouched.", clazz.getName(), ex.getMessage());
+                        return null;
+                    }
+                    transformedClass.detach();
+                    return bytecode;
+                }
             }
         }
 
         return classfileBuffer;
     }
 
-    private byte[] applyTransformations(
-            final ClassLoader loader,
-            final String className,
-            final Class<?> classBeingRedefined,
-            final ProtectionDomain protectionDomain,
-            final byte[] classfileBuffer) throws IllegalClassFormatException {
+    private CtClass applyTransformations(CtClass clazz) throws IllegalClassFormatException {
 
-        requireNonNull(className, "Class name must not be null");
-
-        final String javaClassName = className.replace('/', '.');
-
-        LOG.trace("CFT0001247: Instrumenting class: {} ...", javaClassName);
-
-        byte[] result = classfileBuffer;
-
-        ClassPool cp = ClassPool.getDefault();
-
-        CtClass clazz;
-        try {
-            clazz = cp.get(javaClassName);
-        } catch (NotFoundException ex) {
-            LOG.error("CFT0064585 Can not find class {}", javaClassName);
-            return result;
-        }
+        LOG.trace("CFT0001247: Instrumenting class: {} ...", clazz.getName());
 
         for (ClassTransformer classTransformer : transformers) {
             if (classTransformer.shouldSkip(clazz)) {
-                LOG.trace("CFT0011556: {} is skipping class {}", classTransformer.getName(), className);
+                LOG.trace("CFT0011556: {} is skipping class {}", classTransformer.getName(), clazz.getName());
                 continue;
             }
 
             try {
-                clazz = classTransformer.transform(clazz);
-            } catch (Exception e) {
+                classTransformer.transform(clazz);
+            } catch (InstrumentationFailedException e) {
                 LOG.error("CFT0013297 Failed to apply '{}' bytecode modifications to {} due to {}",
-                        classTransformer.getName(), javaClassName, e.getMessage()
+                        classTransformer.getName(), clazz.getName(), e.getMessage()
                 );
+                throw new RuntimeException(e.getMessage(), e);
             }
         }
 
-        // Apply changes to bytecode if there are any
-        if (clazz.isModified()) {
-            try {
-                result = clazz.toBytecode();
-            } catch (IOException | CannotCompileException ex) {
-                LOG.error("CFT0014824 Failed get bytecode of {} due to {}. The class remains untouched.",
-                        javaClassName, ex.getMessage()
-                );
-            }
-        }
-
-        return result;
+        return clazz;
     }
 
 }

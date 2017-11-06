@@ -116,7 +116,7 @@
                                 -Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005 
                             -->
                             <argLine>
-                                -Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005 
+                                -Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005 
                                 -classpath ${project.build.directory}/classes;${agent.dependencies.classpath}
                                 -Dfile.encoding=UTF-8 
                                 -Dlog4j.configuration=file:/${basedir}/tools/test-log4j.xml                         
